@@ -1,0 +1,20 @@
+public async Task<IActionResult> Create(IFormFile file, [Bind("Id,Title,Info,Bookquantity,Price,Cataid,Author,Imgfile")] Book book)
+        {
+
+            if (file != null)
+            {
+                string filename = file.FileName;
+                string path = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images"));
+                using (var filestream = new FileStream(Path.Combine(path, filename), FileMode.Create))
+                { await file.CopyToAsync(filestream); }
+
+                book.Imgfile = filename;
+
+            }
+           
+                _context.Add(book);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            
+            
+        }

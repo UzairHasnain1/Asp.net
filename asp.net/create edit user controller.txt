@@ -1,0 +1,60 @@
+public async Task<IActionResult> Create(IFormFile file, [Bind("Id,Title,Info,Bookquantity,Price,Cataid,Author,Imgfile")] Book book)
+        {
+
+            if (file != null)
+            {
+                string filename = file.FileName;
+                string path = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\images"));
+                using (var filestream = new FileStream(Path.Combine(path, filename), FileMode.Create))
+                { await file.CopyToAsync(filestream); }
+
+                book.Imgfile = filename;
+
+            }
+           
+                _context.Add(book);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            
+            
+        }
+
+
+
+
+
+
+
+
+public async Task<IActionResult> Login(string na, string pa)
+        {
+            SqlConnection conn = new SqlConnection("Data Source=LAB7-178;Initial Catalog=BookDB;Persist Security Info=False;User ID=sa;Password=aptech;Pooling=False;Multiple Active Result Sets=False;Encrypt=False;Trust Server Certificate=False");
+
+            string sql;
+            sql = "SELECT * FROM UsersAccounts where Name ='" + na + "' and  Password ='" + pa + "' ";
+            SqlCommand comm = new SqlCommand(sql, conn);
+            conn.Open();
+            SqlDataReader reader = comm.ExecuteReader();
+
+            if (reader.Read())
+            {
+                string role = (string)reader["Role"];
+                string id = Convert.ToString((int)reader["Id"]);
+                HttpContext.Session.SetString("Name", na);
+                HttpContext.Session.SetString("Role", role);
+                HttpContext.Session.SetString("UserId", id);
+                reader.Close();
+                conn.Close();
+                if (role == "Customer")
+                    return RedirectToAction("catalogue", "Books");
+
+                else
+                    return RedirectToAction("Index", "Books");
+
+            }
+            else
+            {
+                ViewData["Message"] = "wrong user name password";
+                return View();
+            }
+        }
